@@ -59,3 +59,7 @@ The result of unrolling is then pushed onto the argument stack.
 # Testing.
 
 Tests are embedded within the module.
+
+There is a test which compares this implementation to the Python's own
+one by `eval`'ing the expressions.  1000 random cases are generated
+for each run.
