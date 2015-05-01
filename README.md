@@ -13,7 +13,9 @@ the ability to reuse parts of the parser or call them directly.
 Operator precedence parsing is the only thing it currently lacks.
 
 Also, sometimes you might want to define your own operators with their
-own precedence, e. g. Haskell and camlp4.
+own precedence, e. g. Haskell and camlp4.  This requires you to define
+a separate step after parsing just to settle down precedence, which
+has to be extracted from the already parsed AST.
 
 ## Why not submit a patch to funcparserlib?
 
@@ -42,7 +44,7 @@ precedence of the operator on top of the stack.
 If it is greater, put the left argument of the next operator and the
 operator itself onto the stack.
 
-f it is the same, check if the stack-top operator is
+If it is the same, check if the stack-top operator is
 left-associative.  If so, unroll the AST (more on unrolling below).
 
 If it is less, unroll.
