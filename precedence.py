@@ -313,7 +313,7 @@ def rewrite_precedence(ast):
     assert type(ast) == Function
     op_stack, arg_stack = [], []
     rewritten = rp_worker(ast, op_stack, arg_stack)
-    assert (op_stack, arg_stack == [], [])
+    assert len(op_stack) + len(arg_stack) == 0
     return rewritten
 
 
