@@ -35,15 +35,11 @@
 
 from __future__ import print_function
 import operator
-import sys
-from pprint import pprint, pformat
 
 import py.test
 
-import funcparserlib
-from funcparserlib.parser import (some, a, many, skip, finished,
-                                  pure, maybe, with_forward_decls)
-from funcparserlib.util import pretty_tree
+from funcparserlib.parser import (
+    some, skip, pure, maybe, with_forward_decls)
 
 
 #
@@ -86,8 +82,7 @@ def tokenize(s):
 #
 
 class ASTNode(object):
-    def __str__(self):
-        return str(self._value)
+    pass
 
 
 class Function(ASTNode):
@@ -125,21 +120,16 @@ class Function(ASTNode):
         return funcs[self._name](*[arg() for arg in self._args])
 
 
-class Value(ASTNode):
-    def value(self):
+class Number(ASTNode):
+    def __init__(self, value):
+        self._value = int(value)
+
+    def __call__(self):
         return self._value
 
     def __eq__(self, other):
         return (type(other) == type(self) and
                 self._value == other._value)
-
-    def __call__(self):
-        return self._value
-
-
-class Number(Value):
-    def __init__(self, value):
-        self._value = int(value)
 
     def __str__(self):
         return str(self._value)
@@ -265,7 +255,7 @@ PRECEDENCE_DATA = {
 
 
 def get_precedence(fun):
-    if type(fun) != Function:
+    if not isinstance(fun, Function):
         return PRECEDENCE_DATA[fun]
     return PRECEDENCE_DATA[fun.name()]
 
@@ -308,9 +298,9 @@ def rewrite_precedence(ast):
     Since our grammar is rigth-recursive, we leave the left op arg
     as is, and descend on the right branch.
     """
-    if isinstance(ast, Value):
+    if isinstance(ast, Number):
         return ast
-    assert type(ast) == Function
+    assert isinstance(ast, Function)
     op_stack, arg_stack = [], []
     rewritten = rp_worker(ast, op_stack, arg_stack)
     assert len(op_stack) + len(arg_stack) == 0
@@ -322,11 +312,10 @@ def unroll_ast(op_stack, arg_stack, minprec=0):
             len(arg_stack) >= 2 and
             len(arg_stack) == len(op_stack) + 1)
 
-    op = op_stack.pop()
+    oper = op_stack.pop()
     rarg = arg_stack.pop()
     larg = arg_stack.pop()
-    curfun = Function(op, [larg, rarg])
-    startprec = get_precedence(op)
+    curfun = Function(oper, [larg, rarg])
 
     def need_unroll_more():
         tprec, tass = get_precedence(op_stack[-1])
@@ -337,9 +326,9 @@ def unroll_ast(op_stack, arg_stack, minprec=0):
         return False
 
     while len(op_stack) > 0 and need_unroll_more():
-        op = op_stack.pop()
+        oper = op_stack.pop()
         arg = arg_stack.pop()
-        curfun = Function(op, [arg, curfun])
+        curfun = Function(oper, [arg, curfun])
     if minprec == 0:
         assert op_stack == [] and arg_stack == []
     return curfun
